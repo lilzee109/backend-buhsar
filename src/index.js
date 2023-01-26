@@ -5,6 +5,7 @@ import Users from "./models/UserModel.js";
 import dotenv from "dotenv";
 
 dotenv.config();
+const port = process.env.PORT || 5000;
 const app = express();
 
 try {
@@ -19,4 +20,4 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.use(router);
 
-app.listen(5000, () => console.log("Server Running at port 5000"));
+app.listen(port, () => console.log(`Server Running at port ${port}`));

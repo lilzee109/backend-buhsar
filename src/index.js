@@ -21,7 +21,7 @@ try {
 }
 
 // app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
-app.use(cors({ credentials: true, origin: "https://safaaat.github.io/font-end-buhsar" }));
+app.use(cors({ credentials: true, origin: "https://safaaat.github.io" }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded());

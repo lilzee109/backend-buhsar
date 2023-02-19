@@ -1,7 +1,7 @@
 import express from "express";
 import db from "./config/Database.js";
 import router from "./routes/index.js";
-import Users from "./models/UserModel.js";
+import { Users, Products, Keranjangs } from "./models/UserModel.js";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -14,6 +14,8 @@ try {
     await db.authenticate();
     console.log("Database Connected...");
     await Users.sync();
+    await Products.sync();
+    await Keranjangs.sync();
 } catch (error) {
     console.error(error);
 }

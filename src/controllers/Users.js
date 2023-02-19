@@ -1,12 +1,12 @@
-import Users from "../models/UserModel.js";
+import { Users } from "../models/UserModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const checkDataUser = async (req) => {
+const checkDataUserByEmail = async (emailReq) => {
     // Mengambil Data User Berdasarkan Email  
     const users = await Users.findAll({
         where: {
-            email: req
+            email: emailReq
         }
     });
 
@@ -18,13 +18,11 @@ export const getUsers = async (req, res) => {
         const users = await Users.findAll({
             attributes: ['id', 'name', 'email']
         });
-        res.json({
-            status: 200,
+        res.status(200).json({
             response: users
         });
     } catch (error) {
-        res.json({
-            status: 404,
+        res.status(404).json({
             response: error
         })
     }
@@ -34,16 +32,15 @@ export const Register = async (req, res) => {
     const { name, email, password, confPassword } = req.body;
 
     // Menampung Data user ByEmail
-    const users = await checkDataUser(email);
+    const users = await checkDataUserByEmail(email);
+
+    if (name === "" || email === "" || password === "" || confPassword === "") return res.status(400).json({ status: 400, response: "input tidak boleh ada yang kosong" });
 
     // Jika email sudah terdaftar return  status 400
-    if (users.length !== 0) return res.json({ status: 400, response: "Email yang digunakan sudah terdafatar" });
+    if (users.length !== 0) return res.status(400).json({ status: 400, response: "Email yang digunakan sudah terdaftar" });
 
     // Jika password tidak sama dengan confirmasi password return status 400
-    if (password !== confPassword) return res.json({
-        status: 400,
-        response: "Password dan confiramsi password tidak sama"
-    });
+    if (password !== confPassword) return res.status(400).json({ status: 400, response: "Password dan confirmasi password tidak sama" });
 
     // Hash Password
     const salt = await bcrypt.genSalt();
@@ -56,10 +53,7 @@ export const Register = async (req, res) => {
             email: email,
             password: hashPassword
         });
-        res.json({
-            status: 200,
-            response: "Register Success"
-        })
+        res.status(200).json({ name: name, response: "Register Success" })
     } catch (error) {
         res.json({
             status: 404,
@@ -75,14 +69,11 @@ export const Login = async (req, res) => {
             where: {
                 email: req.body.email
             }
-        }).catch(() => {
-            // Response jika email tidak terdaftar
-            res.json({ status: 400, response: "Email tidak terdaftar" })
-        })
+        });
 
         const match = await bcrypt.compare(req.body.password, user[0].password);
 
-        if (!match) return res.json({ status: 400, response: "Password salah" })
+        if (!match) return res.status(400).json({ response: "Password salah" })
 
         // Menampung Data
         const userId = user[0].id;
@@ -90,7 +81,7 @@ export const Login = async (req, res) => {
         const email = user[0].email;
 
         const accessToken = jwt.sign({ userId, name, email }, process.env.ACCESS_TOKEN_SECRET, {
-            expiresIn: "15s"
+            expiresIn: "20s"
         });
         const refreshToken = jwt.sign({ userId, name, email }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: "1d"
@@ -108,9 +99,8 @@ export const Login = async (req, res) => {
         });
         res.json({ accessToken });
     } catch (error) {
-        res.json({
-            status: 404,
-            response: "Email tidak ditemukan"
+        res.status(400).json({
+            response: "Email tidak terdaftar"
         })
     }
 }
@@ -124,7 +114,7 @@ export const Logout = async (req, res) => {
             refresh_token: refreshToken
         }
     });
-    console.log(user);
+
     if (!user[0]) return res.sendStatus(204);
     const userId = user[0].id;
     await Users.update({ refresh_token: null }, {
